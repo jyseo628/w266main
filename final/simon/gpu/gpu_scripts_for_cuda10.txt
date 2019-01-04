@@ -1,0 +1,62 @@
+# https://www.python36.com/how-to-install-tensorflow-gpu-with-cuda-10-0-for-python-on-ubuntu/
+# Step 1: Update and Upgrade your system
+sudo apt-get update 
+sudo apt-get upgrade
+sudo apt-get install build-essential 
+sudo apt-get install cmake git unzip zip
+
+# Install linux kernel header
+uname -r
+sudo apt-get install linux-headers-$(uname -r)
+
+# Install NVIDIA CUDA 10.0 ( remove old )
+sudo apt-get purge nvidia*
+sudo apt-get autoremove
+sudo apt-get autoclean
+sudo rm -rf /usr/local/cuda*
+
+# For Ubuntu 18.04 :
+sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64 /" | sudo tee /etc/apt/sources.list.d/cuda.list
+sudo apt-get update 
+sudo apt-get -o Dpkg::Options::="--force-overwrite" install cuda-10-0 cuda-drivers
+
+# Reboot
+sudo reboot
+
+# Set path
+echo 'export PATH=/usr/local/cuda-10.0/bin${PATH:+:${PATH}}' >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH=/usr/local/cuda-10.0/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}' >> ~/.bashrc
+source ~/.bashrc
+sudo ldconfig
+
+# Test can see gpu using nvidia-smi
+nvidia-smi
+
+# Install cuDNN 7.3.1
+# Download the following: cuDNN v7.3.1 Library for Linux [ cuda 10.0]
+#
+# If downloaded to win host, copy to gcp using
+# gcloud compute scp cudnn-10.0-linux-x64-v7.4.1.5.tgz instance-1
+
+tar -xf cudnn-10.0-linux-x64-v7.3.1.20.tgz
+sudo cp -R cuda/include/* /usr/local/cuda-10.0/include
+sudo cp -R cuda/lib64/* /usr/local/cuda-10.0/lib64
+
+# Install NCCL 2.3.5
+# Download NCCL v2.3.5, for CUDA 10.0 -> NCCL 2.3.5 O/S agnostic and CUDA 10.0
+# https://developer.nvidia.com/nccl/nccl-download
+
+tar -xf nccl_2.3.5-2+cuda10.0_x86_64.txz
+cd nccl_2.3.5-2+cuda10.0_x86_64
+sudo cp -R * /usr/local/cuda-10.0/targets/x86_64-linux/
+sudo ldconfig
+
+# Install Dependencies ( in venv )
+pip install -U pip six numpy wheel mock
+pip install -U keras_applications==1.0.5 --no-deps
+pip install -U keras_preprocessing==1.0.3 --no-deps
+
+pip install tensorflow==1.12.0
+pip install tensorflow-gpu==1.12.0
+
